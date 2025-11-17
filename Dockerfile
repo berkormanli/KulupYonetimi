@@ -5,7 +5,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS base
 WORKDIR /app
 # .NET 8 containers default to 8080; keep it explicit for clarity and PaaS integration
 ENV ASPNETCORE_URLS=http://+:8080 \
-    ASPNETCORE_ENVIRONMENT=Production
+    ASPNETCORE_ENVIRONMENT=Production \
+    ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
 EXPOSE 8080
 
 # ---------- Build image ----------

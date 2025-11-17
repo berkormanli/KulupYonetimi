@@ -45,4 +45,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Lightweight health endpoint for container/platform checks
+app.MapGet("/healthz", () => Results.Ok("OK"));
+
 app.Run();
