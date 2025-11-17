@@ -1,0 +1,39 @@
+@model KulupYonetimi.Models.Entities.Duyuru
+
+@{ 
+    ViewData["Title"] = "Yeni Duyuru Yayınla";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                <input type="hidden" asp-for="KulupId" />
+
+                <div class="mb-3">
+                    <label asp-for="Baslik" class="form-label"></label>
+                    <input asp-for="Baslik" class="form-control" />
+                    <span asp-validation-for="Baslik" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Icerik" class="form-label"></label>
+                    <textarea asp-for="Icerik" class="form-control" rows="5"></textarea>
+                    <span asp-validation-for="Icerik" class="text-danger"></span>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <button type="submit" class="btn btn-primary">Yayınla</button>
+                    <a asp-controller="Kulup" asp-action="Details" asp-route-id="@Model.KulupId" class="btn btn-secondary">Geri Dön</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

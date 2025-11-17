@@ -1,0 +1,85 @@
+@model KulupYonetimi.Models.Entities.Kulup
+@using System.Security.Claims
+
+@{ 
+    ViewData["Title"] = Model.Ad;
+    var yoneticiId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+}
+
+<div class="container">
+    <div class="jumbotron my-4 bg-light p-5 rounded-lg">
+        <h1 class="display-4">@Model.Ad</h1>
+        <p class="lead">@Model.Aciklama</p>
+        <hr class="my-4">
+        @if (User.IsInRole("Ogrenci"))
+        {
+            if ((bool)ViewBag.IsUye)
+            {
+                <button class="btn btn-success disabled">Bu Kulübe Üyesiniz</button>
+            }
+            else
+            {
+                <form asp-action="Join" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-primary">Kulübe Katıl</button>
+                </form>
+            }
+        }
+        @if (User.IsInRole("KulupYoneticisi") && Model.YoneticiId.ToString() == yoneticiId)
+        {
+             <a asp-controller="Duyuru" asp-action="Create" class="btn btn-info">Yeni Duyuru Yayınla</a>
+             <a asp-controller="Etkinlik" asp-action="Create" class="btn btn-primary">Yeni Etkinlik Oluştur</a>
+        }
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h3 class="my-4">Duyurular</h3>
+            @if (!Model.Duyurular.Any())
+            {
+                <p>Bu kulübün henüz bir duyurusu yok.</p>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var duyuru in Model.Duyurular.OrderByDescending(d => d.YayinTarihi))
+                    {
+                        <div class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">@duyuru.Baslik</h5>
+                                <small>@duyuru.YayinTarihi.ToString("dd.MM.yyyy")</small>
+                            </div>
+                            <p class="mb-1">@duyuru.Icerik</p>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+        <div class="col-md-6">
+            <h3 class="my-4">Etkinlikler</h3>
+            @if (!Model.Etkinlikler.Any())
+            {
+                <p>Bu kulübün henüz bir etkinliği yok.</p>
+            }
+            else
+            {
+                <div class="list-group">
+                    @foreach (var etkinlik in Model.Etkinlikler.OrderByDescending(e => e.Tarih))
+                    {
+                        <a asp-controller="Etkinlik" asp-action="Details" asp-route-id="@etkinlik.Id" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">@etkinlik.Ad</h5>
+                                <small>@etkinlik.Tarih.ToString("dd.MM.yyyy")</small>
+                            </div>
+                            <p class="mb-1">@etkinlik.Konum</p>
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">Tüm Kulüplere Geri Dön</a>
+    </div>
+</div>

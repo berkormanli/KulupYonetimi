@@ -1,0 +1,57 @@
+@model KulupYonetimi.Models.ViewModels.EtkinlikCreateViewModel
+
+@{ 
+    ViewData["Title"] = "Yeni Etkinlik Oluştur";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+
+    <div class="row">
+        <div class="col-md-8">
+            <form asp-action="Create">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                
+                <div class="mb-3">
+                    <label asp-for="Ad" class="form-label"></label>
+                    <input asp-for="Ad" class="form-control" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Aciklama" class="form-label"></label>
+                    <textarea asp-for="Aciklama" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="EtkinlikGunu" class="form-label">Tarih</label>
+                            <input asp-for="EtkinlikGunu" class="form-control" type="date" />
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="EtkinlikSaati" class="form-label">Saat</label>
+                            <select asp-for="EtkinlikSaati" asp-items='new SelectList(ViewBag.Times)' class="form-control"></select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label asp-for="Konum" class="form-label"></label>
+                            <input asp-for="Konum" class="form-control" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                    <button type="submit" class="btn btn-primary">Oluştur</button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

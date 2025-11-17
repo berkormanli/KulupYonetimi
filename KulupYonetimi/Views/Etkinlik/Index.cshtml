@@ -1,0 +1,35 @@
+@model IEnumerable<KulupYonetimi.Models.Entities.Etkinlik>
+
+@{ 
+    ViewData["Title"] = "Tüm Etkinlikler";
+}
+
+<div class="container">
+    <h1 class="my-4">@ViewData["Title"]</h1>
+
+    @if (User.IsInRole("KulupYoneticisi"))
+    {
+        <p>
+            <a asp-action="Create" class="btn btn-primary">Yeni Etkinlik Oluştur</a>
+        </p>
+    }
+
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@item.Ad</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@item.Kulup.Ad</h6>
+                        <p class="card-text"><strong>Tarih:</strong> @item.Tarih.ToString("dd MMMM yyyy HH:mm")</p>
+                        <p class="card-text"><strong>Konum:</strong> @item.Konum</p>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info">Detayları Gör</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,73 @@
+@model KulupYonetimi.Models.ViewModels.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Kaydol";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <h1 class="my-4 text-center">@ViewData["Title"]</h1>
+        <form asp-action="Register">
+            <div asp-validation-summary="All" class="text-danger"></div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Ad" class="form-label"></label>
+                    <input asp-for="Ad" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Soyad" class="form-label"></label>
+                    <input asp-for="Soyad" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Sifre" class="form-label"></label>
+                <input asp-for="Sifre" type="password" class="form-control" />
+            </div>
+            <div class="mb-3">
+                <label asp-for="Rol" class="form-label"></label>
+                <select id="rolSelect" asp-for="Rol" asp-items="Html.GetEnumSelectList<KulupYonetimi.Models.Entities.Rol>()" class="form-control"></select>
+            </div>
+            <div id="kulupSelectDiv" class="mb-3" style="display: none;">
+                <label asp-for="KulupId" class="form-label">Yönetilecek Kulüp</label>
+                <select asp-for="KulupId" asp-items="ViewBag.Kulupler" class="form-control">
+                    <option value="">-- Kulüp Seçin --</option>
+                </select>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Kaydol</button>
+            </div>
+             <p class="mt-3 text-center">
+                Zaten hesabın var mı? <a asp-action="Login">Giriş yap.</a>
+            </p>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const rolSelect = document.getElementById('rolSelect');
+            const kulupSelectDiv = document.getElementById('kulupSelectDiv');
+            const kulupYoneticisiValue = '@((int)KulupYonetimi.Models.Entities.Rol.KulupYoneticisi)';
+
+            function toggleKulupSelect() {
+                if (rolSelect.value === kulupYoneticisiValue) {
+                    kulupSelectDiv.style.display = 'block';
+                } else {
+                    kulupSelectDiv.style.display = 'none';
+                }
+            }
+
+            // Initial check
+            toggleKulupSelect();
+
+            // Add event listener
+            rolSelect.addEventListener('change', toggleKulupSelect);
+        });
+    </script>
+}

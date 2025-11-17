@@ -1,0 +1,98 @@
+﻿@model KulupYonetimi.Models.ViewModels.HomeIndexViewModel
+
+@{ 
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+@if (Model.IsYonetici)
+{
+    var yoneticiModel = Model.YoneticiDashboard;
+    <div class="container">
+        @if(yoneticiModel.YonetilenKulup != null)
+        {
+            <div class="d-flex justify-content-between align-items-center my-4">
+                <h1>@yoneticiModel.YonetilenKulup.Ad - Yönetim Paneli</h1>
+                <div>
+                    <a asp-controller="Duyuru" asp-action="Create" class="btn btn-info">Yeni Duyuru Yayınla</a>
+                    <a asp-controller="Etkinlik" asp-action="Create" class="btn btn-primary">Yeni Etkinlik Oluştur</a>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <h4>Son Duyurular</h4>
+                    @if (!yoneticiModel.Duyurular.Any())
+                    {
+                        <p>Henüz bir duyuru yayınlanmamış.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var duyuru in yoneticiModel.Duyurular)
+                            {
+                                <li class="list-group-item"><strong>@duyuru.Baslik</strong><br/>@duyuru.Icerik</li>
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <h4>Yaklaşan Etkinlikler</h4>
+                    @if (!yoneticiModel.Etkinlikler.Any())
+                    {
+                        <p>Henüz bir etkinlik oluşturulmamış.</p>
+                    }
+                    else
+                    {
+                        <ul class="list-group">
+                            @foreach (var etkinlik in yoneticiModel.Etkinlikler)
+                            {
+                                <li class="list-group-item"><a asp-controller="Etkinlik" asp-action="Details" asp-route-id="@etkinlik.Id">@etkinlik.Ad</a> - @etkinlik.Tarih.ToString("dd.MM.yyyy")</li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+             <div class="alert alert-warning" role="alert">
+                Henüz bir kulüp yönetmiyorsunuz.
+            </div>
+        }
+    </div>
+}
+else
+{
+    var ogrenciModel = Model.OgrenciDashboard;
+    <div class="container">
+        <h1 class="my-4">Etkinlik Akışı</h1>
+
+        @if (!ogrenciModel.Etkinlikler.Any())
+        {
+            <div class="alert alert-info" role="alert">
+                Henüz üye olduğunuz bir kulübün etkinliği bulunmamaktadır. <a asp-controller="Kulup" asp-action="Index">Kulüpleri keşfedin!</a>
+            </div>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var item in ogrenciModel.Etkinlikler)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Ad</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">@item.Kulup.Ad</h6>
+                                <p class="card-text"><strong>Tarih:</strong> @item.Tarih.ToString("dd MMMM yyyy HH:mm")</p>
+                                <p class="card-text"><strong>Konum:</strong> @item.Konum</p>
+                            </div>
+                            <div class="card-footer">
+                                <a asp-controller="Etkinlik" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-primary">Detayları Gör</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

@@ -1,0 +1,62 @@
+@model KulupYonetimi.Models.Entities.Etkinlik
+
+@{ 
+    ViewData["Title"] = Model.Ad;
+}
+
+<div class="container">
+    <div class="jumbotron my-4">
+        <h1 class="display-4">@Model.Ad</h1>
+        <p class="lead"><strong>Kulüp:</strong> <a asp-controller="Kulup" asp-action="Details" asp-route-id="@Model.KulupId">@Model.Kulup.Ad</a></p>
+        <p><strong>Tarih:</strong> @Model.Tarih.ToString("dd MMMM yyyy HH:mm")</p>
+        <p><strong>Konum:</strong> @Model.Konum</p>
+        <hr class="my-4">
+        <p>@Model.Aciklama</p>
+
+        @if (User.IsInRole("Ogrenci"))
+        {
+            if ((bool)ViewBag.IsKayitli)
+            {
+                <button class="btn btn-success disabled">Bu Etkinliğe Kayıtlısınız</button>
+                @if (Model.Tarih < DateTime.Now)
+                {
+                    <a asp-action="Degerlendir" asp-route-id="@Model.Id" class="btn btn-info">Etkinliği Değerlendir</a>
+                }
+            }
+            else
+            {
+                <form asp-action="Register" method="post">
+                    <input type="hidden" name="id" value="@Model.Id" />
+                    <button type="submit" class="btn btn-primary">Etkinliğe Kaydol</button>
+                </form>
+            }
+        }
+    </div>
+
+    <h3 class="my-4">Değerlendirmeler</h3>
+
+    @if (!Model.Degerlendirmeler.Any())
+    {
+        <p>Bu etkinlik için henüz bir değerlendirme yapılmamış.</p>
+    }
+    else
+    {
+        <div class="list-group">
+            @foreach (var degerlendirme in Model.Degerlendirmeler)
+            {
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">@degerlendirme.Kullanici.Ad @degerlendirme.Kullanici.Soyad</h5>
+                        <small>@degerlendirme.Tarih.ToString("dd.MM.yyyy")</small>
+                    </div>
+                    <p class="mb-1"><strong>Puan:</strong> @degerlendirme.Puan / 5</p>
+                    <p class="mb-1">@degerlendirme.Yorum</p>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+    </div>
+</div>
