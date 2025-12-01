@@ -25,6 +25,25 @@
                     <span asp-validation-for="Icerik" class="text-danger"></span>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="GecerlilikBitis" class="form-label">Geçerlilik Son Tarihi</label>
+                            <input asp-for="GecerlilikBitis" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
+                            <small class="form-text text-muted">Bugün veya ileri bir tarih seçin.</small>
+                            <span asp-validation-for="GecerlilikBitis" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label asp-for="GecerlilikSuresiGun" class="form-label">Geçerlilik Süresi (gün)</label>
+                            <input asp-for="GecerlilikSuresiGun" class="form-control" type="number" min="1" />
+                            <small class="form-text text-muted">Son tarih boşsa bugün + gün sayısı olarak ayarlanır.</small>
+                            <span asp-validation-for="GecerlilikSuresiGun" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="d-grid gap-2 d-md-flex justify-content-md-start">
                     <button type="submit" class="btn btn-primary">Yayınla</button>
                     <a asp-controller="Kulup" asp-action="Details" asp-route-id="@Model.KulupId" class="btn btn-secondary">Geri Dön</a>
@@ -36,4 +55,58 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            const dateInput = document.querySelector('input[name="GecerlilikBitis"]');
+            const daysInput = document.querySelector('input[name="GecerlilikSuresiGun"]');
+            const submitButton = document.querySelector('button[type="submit"]');
+
+            if (!dateInput || !daysInput) return;
+
+            let isSyncing = false;
+
+            const enforceMinDate = () => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                dateInput.min = todayStr;
+                if (dateInput.value && dateInput.value < todayStr) {
+                    dateInput.value = todayStr;
+                }
+            };
+
+            const getTodayMidnight = () => {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            };
+
+            const syncDaysFromDate = () => {
+                if (isSyncing || !dateInput.value) return;
+                isSyncing = true;
+                const today = getTodayMidnight();
+                const selected = new Date(dateInput.value);
+                const diffMs = selected.getTime() - today.getTime();
+                const diffDays = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+                daysInput.value = diffDays;
+                isSyncing = false;
+            };
+
+            const syncDateFromDays = () => {
+                if (isSyncing) return;
+                const days = parseInt(daysInput.value, 10);
+                if (isNaN(days) || days <= 0) return;
+                isSyncing = true;
+                const target = getTodayMidnight();
+                target.setDate(target.getDate() + days);
+                dateInput.value = target.toISOString().split('T')[0];
+                isSyncing = false;
+            };
+
+            dateInput.addEventListener('change', () => { enforceMinDate(); syncDaysFromDate(); });
+            dateInput.addEventListener('input', () => { enforceMinDate(); syncDaysFromDate(); });
+            daysInput.addEventListener('change', syncDateFromDays);
+            daysInput.addEventListener('input', syncDateFromDays);
+
+            enforceMinDate();
+            syncDaysFromDate();
+        })();
+    </script>
 }

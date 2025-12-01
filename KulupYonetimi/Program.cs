@@ -1,4 +1,6 @@
 using KulupYonetimi.Data;
+using KulupYonetimi.Models;
+using KulupYonetimi.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 // Cookie Authentication servisini ekle
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -26,7 +26,7 @@
                     <div class="col-md-4">
                         <div class="mb-3">
                             <label asp-for="EtkinlikGunu" class="form-label">Tarih</label>
-                            <input asp-for="EtkinlikGunu" class="form-control" type="date" />
+                            <input asp-for="EtkinlikGunu" class="form-control" type="date" min="@DateTime.Now.ToString("yyyy-MM-dd")" />
                         </div>
                     </div>
                     <div class="col-md-4">
@@ -54,4 +54,86 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (function () {
+            const dateInput = document.querySelector('input[name="EtkinlikGunu"]');
+            const timeSelect = document.querySelector('select[name="EtkinlikSaati"]');
+            const submitButton = document.querySelector('button[type="submit"]');
+
+            if (!dateInput || !timeSelect) return;
+
+            const allTimes = Array.from(timeSelect.options).map(opt => ({ value: opt.value, text: opt.text }));
+
+            const setMinToday = () => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                dateInput.min = todayStr;
+
+                if (dateInput.value && dateInput.value < todayStr) {
+                    dateInput.value = todayStr;
+                }
+            };
+
+            const toMinutes = (time) => {
+                const [hour, minute] = time.split(':').map(Number);
+                return hour * 60 + minute;
+            };
+
+            const rebuildOptions = (filteredOptions) => {
+                const currentSelection = timeSelect.value;
+                timeSelect.innerHTML = '';
+
+                if (!filteredOptions.length) {
+                    const option = document.createElement('option');
+                    option.textContent = 'Bugün için uygun saat yok';
+                    option.disabled = true;
+                    option.selected = true;
+                    timeSelect.appendChild(option);
+                    if (submitButton) submitButton.disabled = true;
+                    return;
+                }
+
+                if (submitButton) submitButton.disabled = false;
+
+                filteredOptions.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt.value;
+                    option.textContent = opt.text;
+                    timeSelect.appendChild(option);
+                });
+
+                const availableSelection = filteredOptions.some(opt => opt.value === currentSelection)
+                    ? currentSelection
+                    : filteredOptions[0].value;
+
+                timeSelect.value = availableSelection;
+            };
+
+            const filterTimesForDate = () => {
+                const selectedDate = dateInput.value ? new Date(dateInput.value) : null;
+                const today = new Date();
+                let filtered = allTimes;
+
+                if (selectedDate) {
+                    selectedDate.setHours(0, 0, 0, 0);
+                    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                    if (selectedDate.getTime() === todayStart.getTime()) {
+                        const nowMinutes = today.getHours() * 60 + today.getMinutes();
+                        filtered = allTimes.filter(opt => toMinutes(opt.value) >= nowMinutes);
+                    }
+                }
+
+                rebuildOptions(filtered);
+            };
+
+            const handleDateChange = () => {
+                setMinToday();
+                filterTimesForDate();
+            };
+
+            dateInput.addEventListener('change', handleDateChange);
+            dateInput.addEventListener('input', handleDateChange);
+            handleDateChange();
+        })();
+    </script>
 }

@@ -98,6 +98,21 @@ namespace KulupYonetimi.Controllers
 
                 var etkinlikTarihi = new DateTime(viewModel.EtkinlikGunu.Year, viewModel.EtkinlikGunu.Month, viewModel.EtkinlikGunu.Day, saat, dakika, 0);
 
+                if (etkinlikTarihi < DateTime.Now)
+                {
+                    ModelState.AddModelError("EtkinlikGunu", "Geçmiş bir tarihe etkinlik oluşturulamaz.");
+                    var timesList = new List<string>();
+                    for (var i = 0; i < 24; i++)
+                    {
+                        timesList.Add(i.ToString("00") + ":00");
+                        timesList.Add(i.ToString("00") + ":15");
+                        timesList.Add(i.ToString("00") + ":30");
+                        timesList.Add(i.ToString("00") + ":45");
+                    }
+                    ViewBag.Times = timesList;
+                    return View(viewModel);
+                }
+
                 var etkinlik = new Etkinlik
                 {
                     Ad = viewModel.Ad,

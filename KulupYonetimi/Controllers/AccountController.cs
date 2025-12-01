@@ -1,6 +1,7 @@
 using KulupYonetimi.Data;
 using KulupYonetimi.Models.Entities;
 using KulupYonetimi.Models.ViewModels;
+using KulupYonetimi.Services;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +14,12 @@ namespace KulupYonetimi.Controllers
     public class AccountController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IEmailService _emailService;
 
-        public AccountController(ApplicationDbContext context)
+        public AccountController(ApplicationDbContext context, IEmailService emailService)
         {
             _context = context;
+            _emailService = emailService;
         }
 
         // GET: /Account/Register
@@ -72,6 +75,12 @@ namespace KulupYonetimi.Controllers
                         await _context.SaveChangesAsync();
                     }
                 }
+
+                await _emailService.SendAsync(
+                    kullanici.Email,
+                    "Kulüp Yönetimi Kaydı",
+                    "Kaydınız oluşturuldu. Doğrulama akışı eklendiğinde buraya gerekli bağlantılar gelecek."
+                );
 
                 return RedirectToAction("Login");
             }

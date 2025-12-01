@@ -16,6 +16,11 @@ namespace KulupYonetimi.Models.Entities
 
         public DateTime YayinTarihi { get; set; } = DateTime.Now;
 
+        public DateTime? GecerlilikBitis { get; set; }
+
+        [NotMapped]
+        public int? GecerlilikSuresiGun { get; set; }
+
         public int KulupId { get; set; }
 
         [ForeignKey("KulupId")]
