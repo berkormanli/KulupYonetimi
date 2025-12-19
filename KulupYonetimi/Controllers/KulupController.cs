@@ -2,6 +2,8 @@ using KulupYonetimi.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using System.Security.Claims;
 
 namespace KulupYonetimi.Controllers
@@ -41,8 +43,19 @@ namespace KulupYonetimi.Controllers
                 return NotFound();
             }
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
+            var isYonetici = User.IsInRole("KulupYoneticisi") && kulup.YoneticiId == userId;
             ViewBag.IsUye = await _context.KullaniciKulupler.AnyAsync(kk => kk.KulupId == id && kk.KullaniciId == userId);
+            ViewBag.IsYonetici = isYonetici;
+
+            if (!isYonetici)
+            {
+                var today = DateTime.Today;
+                kulup.Duyurular = kulup.Duyurular
+                    .Where(d => !d.GecerlilikBitis.HasValue || d.GecerlilikBitis.Value.Date >= today)
+                    .OrderByDescending(d => d.YayinTarihi)
+                    .ToList();
+            }
 
             return View(kulup);
         }
@@ -76,7 +89,7 @@ namespace KulupYonetimi.Controllers
         [Authorize(Roles = "Ogrenci")]
         public async Task<IActionResult> Join(int id)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
             
             var isUye = await _context.KullaniciKulupler.AnyAsync(kk => kk.KulupId == id && kk.KullaniciId == userId);
             if (!isUye)
@@ -87,6 +100,17 @@ namespace KulupYonetimi.Controllers
             }
 
             return RedirectToAction(nameof(Details), new { id });
+        }
+
+        private int GetCurrentUserId()
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idValue))
+            {
+                throw new InvalidOperationException("Kullanıcı bilgisi bulunamadı.");
+            }
+
+            return int.Parse(idValue);
         }
     }
 }

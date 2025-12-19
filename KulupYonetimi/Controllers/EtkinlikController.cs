@@ -4,6 +4,8 @@ using KulupYonetimi.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using System.Security.Claims;
 
 namespace KulupYonetimi.Controllers
@@ -25,7 +27,7 @@ namespace KulupYonetimi.Controllers
 
             if (User.IsInRole("Ogrenci"))
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userId = GetCurrentUserId();
                 var uyeOlunanKulupIdleri = await _context.KullaniciKulupler
                     .Where(kk => kk.KullaniciId == userId)
                     .Select(kk => kk.KulupId)
@@ -55,8 +57,9 @@ namespace KulupYonetimi.Controllers
 
             if (etkinlik == null) return NotFound();
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
             ViewBag.IsKayitli = await _context.EtkinlikKayitlari.AnyAsync(ek => ek.EtkinlikId == id && ek.KullaniciId == userId);
+            ViewBag.HasDegerlendirme = await _context.Degerlendirmeler.AnyAsync(d => d.EtkinlikId == id && d.KullaniciId == userId);
 
             return View(etkinlik);
         }
@@ -87,7 +90,7 @@ namespace KulupYonetimi.Controllers
         {
             if (ModelState.IsValid)
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var userId = GetCurrentUserId();
                 var yoneticininKulubu = await _context.Kulupler.FirstOrDefaultAsync(k => k.YoneticiId == userId);
 
                 if (yoneticininKulubu == null) return Unauthorized();
@@ -146,7 +149,15 @@ namespace KulupYonetimi.Controllers
         [Authorize(Roles = "Ogrenci")]
         public async Task<IActionResult> Register(int id)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
+            var etkinlik = await _context.Etkinlikler.FindAsync(id);
+            if (etkinlik == null) return NotFound();
+
+            if (etkinlik.Tarih <= DateTime.Now)
+            {
+                TempData["EtkinlikUyari"] = "Geçmiş etkinliklere kayıt yapılamaz.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
 
             var isKayitli = await _context.EtkinlikKayitlari.AnyAsync(ek => ek.EtkinlikId == id && ek.KullaniciId == userId);
             if (!isKayitli)
@@ -168,13 +179,18 @@ namespace KulupYonetimi.Controllers
             var etkinlik = await _context.Etkinlikler.FindAsync(id);
             if (etkinlik == null) return NotFound();
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
             var isKayitli = await _context.EtkinlikKayitlari.AnyAsync(ek => ek.EtkinlikId == id && ek.KullaniciId == userId);
             if (etkinlik.Tarih > DateTime.Now || !isKayitli) return RedirectToAction(nameof(Details), new { id });
 
             var mevcutDegerlendirme = await _context.Degerlendirmeler.FirstOrDefaultAsync(d => d.EtkinlikId == id && d.KullaniciId == userId);
-            
-            if(mevcutDegerlendirme != null) return View(mevcutDegerlendirme);
+            if(mevcutDegerlendirme != null)
+            {
+                TempData["DegerlendirmeMesaji"] = "Bu etkinliği zaten değerlendirdiniz.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            ViewBag.EtkinlikAdi = etkinlik.Ad;
 
             return View(new Degerlendirme { EtkinlikId = etkinlik.Id });
         }
@@ -187,9 +203,21 @@ namespace KulupYonetimi.Controllers
         {
             if (id != degerlendirme.EtkinlikId) return NotFound();
 
+            var etkinlik = await _context.Etkinlikler.FindAsync(id);
+            if (etkinlik == null) return NotFound();
+
+            ViewBag.EtkinlikAdi = etkinlik.Ad;
+
+            var userId = GetCurrentUserId();
+            var isKayitli = await _context.EtkinlikKayitlari.AnyAsync(ek => ek.EtkinlikId == id && ek.KullaniciId == userId);
+            if (etkinlik.Tarih > DateTime.Now || !isKayitli)
+            {
+                TempData["DegerlendirmeMesaji"] = "Yalnızca katıldığınız ve tamamlanan etkinlikleri değerlendirebilirsiniz.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
             if (ModelState.IsValid)
             {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
                 degerlendirme.KullaniciId = userId;
                 degerlendirme.Tarih = DateTime.Now;
 
@@ -197,20 +225,37 @@ namespace KulupYonetimi.Controllers
 
                 if (mevcutDegerlendirme != null)
                 {
-                    mevcutDegerlendirme.Puan = degerlendirme.Puan;
-                    mevcutDegerlendirme.Yorum = degerlendirme.Yorum;
-                    mevcutDegerlendirme.Tarih = DateTime.Now;
-                    _context.Update(mevcutDegerlendirme);
+                    TempData["DegerlendirmeMesaji"] = "Bu etkinliği zaten değerlendirdiniz.";
+                    return RedirectToAction(nameof(Details), new { id });
                 }
-                else
-                {
-                    _context.Add(degerlendirme);
-                }
-                
+
+                _context.Add(degerlendirme);
+
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Details), new { id = degerlendirme.EtkinlikId });
             }
-            return View(degerlendirme);
+
+            var hataMesaji = string.Join(" ", ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .Where(m => !string.IsNullOrWhiteSpace(m)));
+
+            TempData["DegerlendirmeMesaji"] = string.IsNullOrWhiteSpace(hataMesaji)
+                ? "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin."
+                : hataMesaji;
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        private int GetCurrentUserId()
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idValue))
+            {
+                throw new InvalidOperationException("Kullanıcı bilgisi bulunamadı.");
+            }
+
+            return int.Parse(idValue);
         }
     }
 }

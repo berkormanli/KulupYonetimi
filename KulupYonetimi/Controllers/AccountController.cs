@@ -67,7 +67,9 @@ namespace KulupYonetimi.Controllers
 
                 if (model.Rol == Rol.KulupYoneticisi)
                 {
-                    var kulup = await _context.Kulupler.FindAsync(model.KulupId.Value);
+                    var kulup = model.KulupId.HasValue
+                        ? await _context.Kulupler.FindAsync(model.KulupId.Value)
+                        : null;
                     if (kulup != null)
                     {
                         kulup.YoneticiId = kullanici.Id;

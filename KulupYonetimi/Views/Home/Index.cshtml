@@ -1,4 +1,5 @@
 ﻿@model KulupYonetimi.Models.ViewModels.HomeIndexViewModel
+@using System.Linq
 
 @{ 
     ViewData["Title"] = "Ana Sayfa";
@@ -57,6 +58,91 @@
         {
              <div class="alert alert-warning" role="alert">
                 Henüz bir kulüp yönetmiyorsunuz.
+            </div>
+        }
+
+        @if (yoneticiModel.YonetilenKulup != null)
+        {
+            <div class="mt-5">
+                <h3>Geçmiş Etkinlikler</h3>
+                @if (!yoneticiModel.GecmisEtkinlikAnalizleri.Any())
+                {
+                    <div class="alert alert-info" role="alert">
+                        Tamamlanmış etkinlik bulunamadı. Yeni etkinlikler düzenledikçe burada katılım ve değerlendirme özetlerini göreceksiniz.
+                    </div>
+                }
+                else
+                {
+                    var toplamKatilimci = yoneticiModel.GecmisEtkinlikAnalizleri.Sum(a => a.KatilimciSayisi);
+                    var toplamDegerlendirme = yoneticiModel.GecmisEtkinlikAnalizleri.Sum(a => a.DegerlendirmeSayisi);
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Toplam Katılımcı</h5>
+                                    <p class="display-6">@toplamKatilimci</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Toplam Değerlendirme</h5>
+                                    <p class="display-6">@toplamDegerlendirme</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card text-center">
+                                <div class="card-body">
+                                    <h5 class="card-title">Etkinlik Sayısı</h5>
+                                    <p class="display-6">@yoneticiModel.GecmisEtkinlikAnalizleri.Count</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Etkinlik</th>
+                                    <th>Tarih</th>
+                                    <th class="text-center">Katılımcı</th>
+                                    <th class="text-center">Ortalama Puan</th>
+                                    <th class="text-center">Değerlendirme</th>
+                                    <th class="text-center">Yorum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var analiz in yoneticiModel.GecmisEtkinlikAnalizleri)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Etkinlik" asp-action="Details" asp-route-id="@analiz.EtkinlikId">
+                                            @analiz.Ad
+                                        </a>
+                                    </td>
+                                    <td>@analiz.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td class="text-center">@analiz.KatilimciSayisi</td>
+                                    <td class="text-center">
+                                        @if (analiz.OrtalamaPuan.HasValue)
+                                        {
+                                            @analiz.OrtalamaPuan.Value.ToString("0.00")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">@analiz.DegerlendirmeSayisi</td>
+                                    <td class="text-center">@analiz.YorumSayisi</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         }
     </div>

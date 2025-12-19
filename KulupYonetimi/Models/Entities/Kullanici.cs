@@ -14,17 +14,17 @@ namespace KulupYonetimi.Models.Entities
         public int Id { get; set; }
 
         [Required]
-        public string Ad { get; set; }
+        public string Ad { get; set; } = string.Empty;
 
         [Required]
-        public string Soyad { get; set; }
+        public string Soyad { get; set; } = string.Empty;
 
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        public string Sifre { get; set; } // Not: Gerçek projede şifre hash'lenerek saklanmalıdır.
+        public string Sifre { get; set; } = string.Empty; // Not: Gerçek projede şifre hash'lenerek saklanmalıdır.
 
         public Rol Rol { get; set; }
 

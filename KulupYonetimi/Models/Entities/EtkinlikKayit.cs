@@ -8,9 +8,9 @@ namespace KulupYonetimi.Models.Entities
         public int EtkinlikId { get; set; }
 
         [ForeignKey("KullaniciId")]
-        public virtual Kullanici Kullanici { get; set; }
+        public virtual Kullanici Kullanici { get; set; } = null!;
 
         [ForeignKey("EtkinlikId")]
-        public virtual Etkinlik Etkinlik { get; set; }
+        public virtual Etkinlik Etkinlik { get; set; } = null!;
     }
 }

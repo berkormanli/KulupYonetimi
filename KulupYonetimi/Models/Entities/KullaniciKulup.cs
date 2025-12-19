@@ -8,9 +8,9 @@ namespace KulupYonetimi.Models.Entities
         public int KulupId { get; set; }
 
         [ForeignKey("KullaniciId")]
-        public virtual Kullanici Kullanici { get; set; }
+        public virtual Kullanici Kullanici { get; set; } = null!;
 
         [ForeignKey("KulupId")]
-        public virtual Kulup Kulup { get; set; }
+        public virtual Kulup Kulup { get; set; } = null!;
     }
 }

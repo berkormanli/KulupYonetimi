@@ -3,6 +3,7 @@ using KulupYonetimi.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Security.Claims;
 
 namespace KulupYonetimi.Controllers
@@ -20,7 +21,7 @@ namespace KulupYonetimi.Controllers
         // GET: Duyuru/Create
         public async Task<IActionResult> Create()
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
             var yoneticininKulubu = await _context.Kulupler.FirstOrDefaultAsync(k => k.YoneticiId == userId);
 
             if (yoneticininKulubu == null)
@@ -43,7 +44,7 @@ namespace KulupYonetimi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Baslik,Icerik,KulupId,GecerlilikBitis,GecerlilikSuresiGun")] Duyuru duyuru)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userId = GetCurrentUserId();
             var yoneticininKulubu = await _context.Kulupler.FirstOrDefaultAsync(k => k.YoneticiId == userId);
 
             if (yoneticininKulubu == null || duyuru.KulupId != yoneticininKulubu.Id)
@@ -100,6 +101,17 @@ namespace KulupYonetimi.Controllers
                 return RedirectToAction("Details", "Kulup", new { id = duyuru.KulupId });
             }
             return View(duyuru);
+        }
+
+        private int GetCurrentUserId()
+        {
+            var idValue = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(idValue))
+            {
+                throw new InvalidOperationException("Kullanıcı bilgisi bulunamadı.");
+            }
+
+            return int.Parse(idValue);
         }
     }
 }

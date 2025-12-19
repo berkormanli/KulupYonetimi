@@ -9,14 +9,14 @@ namespace KulupYonetimi.Models.Entities
         public int Id { get; set; }
 
         [Required]
-        public string Ad { get; set; }
+        public string Ad { get; set; } = string.Empty;
 
-        public string Aciklama { get; set; }
+        public string? Aciklama { get; set; }
 
         public int? YoneticiId { get; set; }
 
         [ForeignKey("YoneticiId")]
-        public virtual Kullanici Yonetici { get; set; }
+        public virtual Kullanici? Yonetici { get; set; }
 
         public virtual ICollection<Etkinlik> Etkinlikler { get; set; } = new List<Etkinlik>();
         public virtual ICollection<KullaniciKulup> Uyeler { get; set; } = new List<KullaniciKulup>();

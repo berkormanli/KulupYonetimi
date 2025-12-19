@@ -9,10 +9,10 @@ namespace KulupYonetimi.Models.Entities
         public int Id { get; set; }
 
         [Required]
-        public string Baslik { get; set; }
+        public string Baslik { get; set; } = string.Empty;
 
         [Required]
-        public string Icerik { get; set; }
+        public string Icerik { get; set; } = string.Empty;
 
         public DateTime YayinTarihi { get; set; } = DateTime.Now;
 
@@ -24,6 +24,6 @@ namespace KulupYonetimi.Models.Entities
         public int KulupId { get; set; }
 
         [ForeignKey("KulupId")]
-        public virtual Kulup Kulup { get; set; }
+        public virtual Kulup Kulup { get; set; } = null!;
     }
 }

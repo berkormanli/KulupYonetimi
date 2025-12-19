@@ -14,14 +14,14 @@ namespace KulupYonetimi.Models.Entities
         [Range(1, 5)]
         public int Puan { get; set; }
 
-        public string Yorum { get; set; }
+        public string? Yorum { get; set; }
 
         public DateTime Tarih { get; set; } = DateTime.Now;
 
         [ForeignKey("EtkinlikId")]
-        public virtual Etkinlik Etkinlik { get; set; }
+        public virtual Etkinlik? Etkinlik { get; set; }
 
         [ForeignKey("KullaniciId")]
-        public virtual Kullanici Kullanici { get; set; }
+        public virtual Kullanici? Kullanici { get; set; }
     }
 }

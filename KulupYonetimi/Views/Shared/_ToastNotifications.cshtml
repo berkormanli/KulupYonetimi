@@ -1,0 +1,79 @@
+@using System.Globalization
+@using System.Linq
+@{
+    var tempData = ViewContext.TempData;
+    var toastItems = tempData.Keys
+        .Where(key => tempData[key] != null)
+        .Select(key => new
+        {
+            Key = key,
+            Message = tempData[key]?.ToString(),
+            Type = ResolveType(key)
+        })
+        .Where(item => !string.IsNullOrWhiteSpace(item.Message))
+        .ToList();
+}
+
+@if (toastItems.Any())
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        @{
+            var index = 0;
+        }
+        @foreach (var toast in toastItems)
+        {
+            var toastId = $"toast_{index++}";
+            <div class="toast align-items-center text-bg-@toast.Type border-0 mb-2" id="@toastId" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @toast.Message
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
+            toastElList.forEach(function (toastEl) {
+                var toast = new bootstrap.Toast(toastEl, { delay: 5000 });
+                toast.show();
+            });
+        });
+    </script>
+}
+
+@functions {
+    private string ResolveType(string key)
+    {
+        if (string.IsNullOrEmpty(key))
+        {
+            return "info";
+        }
+
+        key = key.ToLower(CultureInfo.InvariantCulture);
+
+        if (key.Contains("success") || key.Contains("basari"))
+        {
+            return "success";
+        }
+
+        if (key.Contains("error") || key.Contains("hata"))
+        {
+            return "danger";
+        }
+
+        if (key.Contains("warning") || key.Contains("uyari"))
+        {
+            return "warning";
+        }
+
+        if (key.Contains("info") || key.Contains("bilgi") || key.Contains("mesaj"))
+        {
+            return "info";
+        }
+
+        return "primary";
+    }
+}
